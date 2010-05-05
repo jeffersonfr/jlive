@@ -1,0 +1,61 @@
+.\" Copyright 2007 Jeff Ferr (jeffersonfr@gmail.com)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.TH jLIVE 1  2007-08-21 "" "jLive's Manual"
+.SH NAME
+jlive \- live stream reflector
+.SH SYNOPSIS
+.B jlive
+[\fIOPTION\fR]
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+This server manage a set of live streams of many formats. Clients can request live stream from WEB on port 6500 [default].
+.TP
+\fB\-c\fR <config-path>
+path of the configuration files [/etc/jlive/config by default]
+.TP
+\fB\-p\fR <port>
+server port [6500 by default]
+.TP
+\fB\-n\fR <true, false>
+notify the super-server
+.TP
+\fB\-a\fR
+auto-reset in crash
+.TP
+\fB\-v\fR
+print current version of server
+.TP
+\fB\-h\fR
+print all options
+.SH AUTHOR
+Written by Jeff Ferr.
+.SH "REPORTING BUGS"
+Report bugs to <bug\-jlive@lavid.ufpb.br>.
+.SH COPYRIGHT
+Copyright \(co 2007 Free Software Foundation, Inc.
+.br
+This is free software.  You may redistribute copies of it under the terms of
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+There is NO WARRANTY, to the extent permitted by law.
+.SH "SEE ALSO"
+For more informations visit www.lavid.ufpb.br.

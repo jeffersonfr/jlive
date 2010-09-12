@@ -21,6 +21,7 @@
 #include "jstringtokenizer.h"
 #include "jruntimeexception.h"
 #include "jurl.h"
+#include "jstringutils.h"
 
 #include <sstream>
 
@@ -99,13 +100,7 @@ std::string RequestParser::GetSourceProtocol()
 {
 	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::SPLIT_FLAG);
 
-	if (strcasecmp(params.GetToken(0).c_str(), "udp") == 0) {
-		return "udp";
-	} else if (strcasecmp(params.GetToken(0).c_str(), "http") == 0) {
-		return "http";
-	}
-
-	return "";
+	return jcommon::StringUtils::ToLower(params.GetToken(0));
 }
 
 std::string RequestParser::GetSourceHost()
@@ -134,13 +129,7 @@ std::string RequestParser::GetDestinationProtocol()
 {
 	jcommon::StringTokenizer params(GetParameter("destination"), "-", jcommon::SPLIT_FLAG);
 
-	if (strcasecmp(params.GetToken(0).c_str(), "udp") == 0) {
-		return "udp";
-	} else if (strcasecmp(params.GetToken(0).c_str(), "http") == 0) {
-		return "http";
-	}
-
-	return "";
+	return jcommon::StringUtils::ToLower(params.GetToken(0));
 }
 
 std::string RequestParser::GetDestinationHost()

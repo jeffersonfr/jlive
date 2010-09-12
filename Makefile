@@ -28,11 +28,11 @@ DEBUG  		= -g -ggdb
 
 INCLUDE		= \
 						-I$(INCDIR) \
-						`pkg-config --cflags jlib` \
+						`pkg-config --cflags jlibcpp` \
 
 LIBRARY 	= \
 						-L$(LIBDIR) \
-						`pkg-config --libs jlib` \
+						`pkg-config --libs jlibcpp` \
 
 ARFLAGS		= -rc
 

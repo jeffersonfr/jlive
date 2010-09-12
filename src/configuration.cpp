@@ -36,16 +36,16 @@ Configuration::Configuration()
 
 		p.Load("/etc/mlive/mlive.properties");
 
-		SetProperty("mlive-name", p.GetProperty("mlive-name", "Mlive Server v0.01"));
-		SetProperty("mlive-id", p.GetProperty("mlive-id", "1234567890"));
-		SetProperty("max-input-rate", p.GetProperty("max-input-rate", "10000"));
-		SetProperty("max-output-rate", p.GetProperty("max-output-rate", "10000"));
-		SetProperty("max-sources", p.GetProperty("max-sources", "4"));
-		SetProperty("max-source-clients", p.GetProperty("max-source-clients", "4"));
-		SetProperty("update-time", p.GetProperty("update-time", "60"));
-		SetProperty("buffer-size", p.GetProperty("buffer-size", "256"));
-		SetProperty("error-video", p.GetProperty("error-video", ""));
-		SetProperty("config-update", p.GetProperty("config-update", "no"));
+		SetProperty("mlive-name", p.GetPropertyByName("mlive-name", "Mlive Server v0.01"));
+		SetProperty("mlive-id", p.GetPropertyByName("mlive-id", "1234567890"));
+		SetProperty("max-input-rate", p.GetPropertyByName("max-input-rate", "10000"));
+		SetProperty("max-output-rate", p.GetPropertyByName("max-output-rate", "10000"));
+		SetProperty("max-sources", p.GetPropertyByName("max-sources", "4"));
+		SetProperty("max-source-clients", p.GetPropertyByName("max-source-clients", "4"));
+		SetProperty("update-time", p.GetPropertyByName("update-time", "60"));
+		SetProperty("buffer-size", p.GetPropertyByName("buffer-size", "256"));
+		SetProperty("error-video", p.GetPropertyByName("error-video", ""));
+		SetProperty("config-update", p.GetPropertyByName("config-update", "no"));
 	} catch (...) {
 		std::cout << "Configuration file mlive.properties not found" << std::endl;
 

@@ -53,36 +53,35 @@ SRCS	= $(addprefix src/,$(OBJS))
 all: $(EXE)
 	
 $(EXE): $(SRCS)
-	@$(CC) $(CFLAGS) -o $(EXE) $(SRCS) $(LIBRARY) ; echo -e "Compiling $< ...  $(OK)"
+	@$(CC) $(CFLAGS) -o $(EXE) $(SRCS) $(LIBRARY) ; echo "Compiling $< ...  $(OK)"
 	@mkdir -p $(BINDIR) $(BINDIR) && mv $(EXE) $(BINDIR)
 
 .cpp.o: $<  
-	@$(CC) $(CFLAGS) -c $< -o $@ && echo -e "Compiling $< ...  $(OK)" 
+	@$(CC) $(CFLAGS) -c $< -o $@ && echo "Compiling $< ...  $(OK)" 
 
 strip:
-	@echo -e "Strip $(EXE)...  $(OK)"
+	@echo "Strip $(EXE)...  $(OK)"
 	@$(STRIP) $(BINDIR)/$(EXE)
 
 tests:
-	@cd $(TESTDIR) && make && cd .. &&  echo -e "Compiling $< ...  $(OK)" 
+	@cd $(TESTDIR) && make && cd .. &&  echo "Compiling $< ...  $(OK)" 
 
 doc:
 	@mkdir -p $(DOCDIR) 
 
 install:
-	@echo -e "Instaling mlive in $(PREFIX)/bin"
+	@echo "Installing mlive in $(PREFIX)/bin $(OK)"
 	@install -o root -m 755 $(BINDIR)/$(EXE) $(PREFIX)/bin
 	@install -o root -m 755 -d /etc/mlive && cp -r ./config/* /etc/mlive
 	@install -o root -m 755 ./man/* $(PREFIX)/man/man1
-	@echo -e "$(OK)"
 
 uninstall:
 	@rm -rf $(PREFIX)/bin/$(EXE) $(PREFIX)/man/man1/mlive.1 /etc/mlive
 
 clean:
-	@rm -rf $(SRCS) *~ 2> /dev/null && echo -e "$(MODULE) clean $(OK)" 
+	@rm -rf $(SRCS) *~ 2> /dev/null && echo "$(MODULE) clean $(OK)" 
 
 ultraclean: clean
-	@find -iname "*.o" -exec rm {} \;;
-	@rm -rf $(EXE) $(BINDIR) $(LIBDIR) $(DOCDIR) 2> /dev/null && echo -e "$(MODULE) ultraclean $(OK)" 
+	@find -iname "*.o" exec rm {} \;;
+	@rm -rf $(EXE) $(BINDIR) $(LIBDIR) $(DOCDIR) 2> /dev/null && echo "$(MODULE) ultraclean $(OK)" 
 

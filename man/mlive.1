@@ -47,9 +47,32 @@ Written by Jeff Ferr.
 Report bugs to <jeffersonfr@lavid.ufpb.br>.
 .SH COPYRIGHT
 Copyright \(co 2010 Free Software Foundation, Inc.
+
+This is free software. You may redistribute copies of it under the terms of the GNU General Public License <http://www.gnu.org/licenses/gpl.html>. There is NO WARRANTY, to the extent permitted by law.
+.SH "EXAMPLE"
+Type one of these options in your preferred browser:
+
+Request unicast stream:
 .br
-This is free software.  You may redistribute copies of it under the terms of
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
-There is NO WARRANTY, to the extent permitted by law.
+	http://host:port/event.xxx?source=<udp,http>-ip-port&destination=<udp-ip-port,http>&type=stream[&resource=/]
+
+Request multicast stream (application level):
+.br
+	http://host:port/event.xxx?source=<udp,http>-ip1-port1-ip2-port2-ip3-port3[...]&destination=<udp-ip-port,http>&type=stream[&resource=/]
+
+Webservice interface:
+.br
+	http://host:port/?type=info
+
+Setting configuration:
+.br
+	http://host:port/?input-rate=256&output-rate=256&max-clients=4&max-sources=4&buffer-size=1024&update-time=2&type=setconfig
+
+Getting configuration:
+.br
+	http://host:port/?type=getconfig
 .SH "SEE ALSO"
 For more informations visit http://sourceforge.net/projects/mlive.
+.br
+For more informations visit http://sourceforge.net/projects/jlibcpp.
+

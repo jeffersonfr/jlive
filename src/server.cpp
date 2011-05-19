@@ -243,15 +243,9 @@ bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
 
 			for (std::map<std::string, std::string>::iterator i=
 				Configuration::GetInstance()->GetProperties().begin(); i!=Configuration::GetInstance()->GetProperties().end(); i++) {
-				if (i->first != "mlive-id" && 
-						i->first != "mlive-name" && 
-						i->first != "config-update" &&
-						i->first != "error-video") {
-					o << "\t<" << i->first << ">" << atoi(Configuration::GetInstance()->GetProperty(i->first).c_str()) << "</" << i->first << ">" << "\r\n";
-				} else {
-					o << "\t<" << i->first << ">" << Configuration::GetInstance()->GetProperty(i->first) << "</" << i->first << ">" << "\r\n";
-				}
+				o << "\t<param name=\"" << i->first << "\" value=\"" << Configuration::GetInstance()->GetProperty(i->first) << "\" />" << "\r\n";
 			}
+
 			o << "</mlive>" << "\r\n";
 			o << "\r\n" << std::flush;
 

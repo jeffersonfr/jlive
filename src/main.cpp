@@ -25,6 +25,13 @@
 
 #include <errno.h>
 
+void help()
+{
+	std::cout << "./mlive [-h] [-p <port:1024..65535>] [-a] [-v]" << std::endl;
+
+	exit(0);
+}
+
 int main(int argc, char **argv)
 {
 	InitWindowsSocket();
@@ -37,16 +44,14 @@ int main(int argc, char **argv)
 	int port = 3200;
 
 	if (o.ExistsOption("h") == true) {
-		std::cout << "./mlive [-h] [-p <port>]" << std::endl;
-
-		exit(0);
+		help();
 	}
 
 	if (o.ExistsOption("p") == true) {
 		port = atoi(o.GetArgument("p").c_str());
 
-		if (port <= 0) {
-			port = 3200;
+		if (port < 1024 || port > 65535) {
+			help();
 		}
 	}
 

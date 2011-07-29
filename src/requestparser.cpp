@@ -32,8 +32,8 @@ namespace mlive {
 
 RequestParser::RequestParser(std::string s)
 {
-	jcommon::StringTokenizer lines(s, "\r\n", jcommon::SPLIT_FLAG);
-	jcommon::StringTokenizer request(lines.GetToken(0), " ", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer lines(s, "\r\n", jcommon::JTT_STRING);
+	jcommon::StringTokenizer request(lines.GetToken(0), " ", jcommon::JTT_STRING);
 
 	if (request.GetSize() != 3) {
 		throw jcommon::RuntimeException("Invalid request");
@@ -43,7 +43,7 @@ RequestParser::RequestParser(std::string s)
 		throw jcommon::RuntimeException("Invalid request protocol");
 	}
 
-	jcommon::StringTokenizer url(request.GetToken(1), "?", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer url(request.GetToken(1), "?", jcommon::JTT_STRING);
 
 	if (request.GetToken(1)[0] != '/') {
 		throw jcommon::RuntimeException("Invalid url resource");
@@ -55,10 +55,10 @@ RequestParser::RequestParser(std::string s)
 
 	_vars["event_name"] = file_name;
 
-	jcommon::StringTokenizer params(url.GetToken(1), "&", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(url.GetToken(1), "&", jcommon::JTT_STRING);
 
 	for (int i=0; i<params.GetSize(); i++) {
-		jcommon::StringTokenizer t(params.GetToken(i), "=", jcommon::SPLIT_FLAG);
+		jcommon::StringTokenizer t(params.GetToken(i), "=", jcommon::JTT_STRING);
 
 		if (t.GetSize() > 1 && t.GetToken(1) != "") {
 			_vars[t.GetToken(0)] = t.GetToken(1);
@@ -98,14 +98,14 @@ RequestParser::request_parser_type_t RequestParser::GetRequestType()
 
 std::string RequestParser::GetSourceProtocol()
 {
-	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::JTT_STRING);
 
 	return jcommon::StringUtils::ToLower(params.GetToken(0));
 }
 
 std::string RequestParser::GetSourceHost()
 {
-	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::JTT_STRING);
 
 	if (params.GetSize() >= 2) {
 		return params.GetToken(1);
@@ -116,7 +116,7 @@ std::string RequestParser::GetSourceHost()
 
 int RequestParser::GetSourcePort()
 {
-	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::JTT_STRING);
 
 	if (params.GetSize() >= 3) {
 		return atoi(params.GetToken(2).c_str());
@@ -127,14 +127,14 @@ int RequestParser::GetSourcePort()
 
 std::string RequestParser::GetDestinationProtocol()
 {
-	jcommon::StringTokenizer params(GetParameter("destination"), "-", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(GetParameter("destination"), "-", jcommon::JTT_STRING);
 
 	return jcommon::StringUtils::ToLower(params.GetToken(0));
 }
 
 std::string RequestParser::GetDestinationHost()
 {
-	jcommon::StringTokenizer params(GetParameter("destination"), "-", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(GetParameter("destination"), "-", jcommon::JTT_STRING);
 
 	if (params.GetSize() == 3) {
 		return params.GetToken(1);
@@ -145,7 +145,7 @@ std::string RequestParser::GetDestinationHost()
 
 int RequestParser::GetDestinationPort()
 {
-	jcommon::StringTokenizer params(GetParameter("destination"), "-", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(GetParameter("destination"), "-", jcommon::JTT_STRING);
 
 	if (params.GetSize() == 3) {
 		return atoi(params.GetToken(2).c_str());
@@ -172,7 +172,7 @@ std::string RequestParser::GetResource()
 
 std::string RequestParser::GetDestinationResource()
 {
-	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::SPLIT_FLAG);
+	jcommon::StringTokenizer params(GetParameter("source"), "-", jcommon::JTT_STRING);
 
 	if (params.GetSize() == 3) {
 		return GetResource();

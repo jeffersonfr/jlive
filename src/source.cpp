@@ -206,14 +206,14 @@ void Source::ReadStream()
 	int r,
 		port;
 
-	if (_source->GetType() == jsocket::TCP_SOCKET) {
+	if (_source->GetType() == jsocket::JCT_TCP) {
 		jsocket::Socket *s = dynamic_cast<jsocket::Socket *>(_source);
 
 		opt = s->GetSocketOption();
 		
 		host = s->GetInetAddress()->GetHostAddress();
 		port = s->GetPort();
-	} else if (_source->GetType() == jsocket::UDP_SOCKET) {
+	} else if (_source->GetType() == jsocket::JCT_UDP) {
 		jsocket::DatagramSocket *s = dynamic_cast<jsocket::DatagramSocket *>(_source);
 
 		opt = s->GetSocketOption();
@@ -230,7 +230,7 @@ void Source::ReadStream()
 
 	delete opt;
 
-	if (_source->GetType() == jsocket::TCP_SOCKET) {
+	if (_source->GetType() == jsocket::JCT_TCP) {
 		{
 			std::ostringstream o;
 

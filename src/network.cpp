@@ -17,54 +17,25 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef JLIVE_REQUESTPARSER_H
-#define JLIVE_REQUESTPARSER_H
-
-#include <string>
-#include <map>
-
-#include <unistd.h>
-#include <stdio.h>
+#include "network.h"
 
 namespace mlive {
 
-/**
- * \brief Request parser.
- *
- *
- */
-class RequestParser{
-
-	private:
-		std::map<std::string, std::string> _vars;
-
-	public:
-		enum requestparser_method_t {
-			UNKNOWN_METHOD,
-			STREAM_METHOD,
-			GETINFO_METHOD,
-			GETCONFIG_METHOD,
-			SETCONFIG_METHOD,
-		};
-
-	public:
-		RequestParser(std::string s);
-		~RequestParser();
-
-		std::string GetParameter(std::string key_);
-		requestparser_method_t GetMethod();
-		std::string GetSourceProtocol();
-		std::string GetSourceHost();
-		int GetSourcePort();
-		std::string GetDestinationProtocol();
-		std::string GetDestinationHost();
-		int GetDestinationPort();
-		std::string GetEventName();
-		std::string GetResource();
-		std::string GetDestinationResource();
-
-};
-
+Network::Network():
+	jthread::Thread()	
+{
+}
+	
+Network::~Network()
+{
 }
 
-#endif
+void Network::UpdateConnections()
+{
+}
+
+void Network::Run()
+{
+}
+
+}

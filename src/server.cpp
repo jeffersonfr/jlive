@@ -152,10 +152,12 @@ int Server::GetNumberOfSources()
 
 bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
 {
-	try {
-		RequestParser parser(receive);
+	RequestParser parser(receive);
 
-		if (parser.GetRequestType() == RequestParser::INFO_REQUEST) {
+	RequestParser::requestparser_method_t method = parser.GetMethod();
+	
+	try {
+		if (method == RequestParser::GETINFO_METHOD) {
 			std::cout << "Response INFO to [" << socket->GetInetAddress()->GetHostAddress() << ":" << socket->GetPort() << "]" << std::endl;
 
 			std::ostringstream o;
@@ -228,7 +230,7 @@ bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
 			socket->Send((const char *)o.str().c_str(), o.str().size());
 
 			return false;
-		} else if (parser.GetRequestType() == RequestParser::GETCONFIG_REQUEST) {
+		} else if (method == RequestParser::GETCONFIG_METHOD) {
 			std::cout << "Response GETCONFIG to [" << socket->GetInetAddress()->GetHostAddress() << ":" << socket->GetPort() << "]" << std::endl;
 
 			std::ostringstream o;
@@ -252,7 +254,7 @@ bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
 			socket->Send((const char *)o.str().c_str(), o.str().size());
 
 			return false;
-		} else if (parser.GetRequestType() == RequestParser::SETCONFIG_REQUEST) {
+		} else if (method == RequestParser::SETCONFIG_METHOD) {
 			if (Configuration::GetInstance()->GetProperty("update-config") == "false") {
 				std::cout << "SETCONFIG DISABLED" << std::endl;
 			} else {
@@ -265,7 +267,7 @@ bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
 					}
 				}
 			}
-		} else if (parser.GetRequestType() == RequestParser::VIDEO_REQUEST) {
+		} else if (method == RequestParser::STREAM_METHOD) {
 			std::cout << "Response stream to [" << socket->GetInetAddress()->GetHostAddress() << ":" << socket->GetPort() << "]" << std::endl;
 
 			{

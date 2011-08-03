@@ -1,0 +1,14 @@
+	Stream request unicast:
+		http://host:port/event.xxx?source=<udp,http>-ip-port&destination=<udp-ip-port,http>&type=stream[&resource=/]
+
+	Stream request multicast (application level):
+		http://host:port/event.xxx?source=<udp,http>-ip1-port1-ip2-port2-ip3-port3[...]&destination=<udp-ip-port,http>&type=stream[&resource=/]
+
+	Webservice interface:
+		http://host:port/?type=info
+
+	Set configuration:
+		http://host:port/?input-rate=256&output-rate=256&max-clients=4&max-sources=4&buffer-size=1024&update-time=2&type=setconfig
+
+	Get configuration:
+		http://host:port/?type=getconfig

@@ -81,19 +81,21 @@ std::string RequestParser::GetParameter(std::string key_)
 	return "";
 }
 
-RequestParser::request_parser_type_t RequestParser::GetRequestType()
+RequestParser::requestparser_method_t RequestParser::GetMethod()
 {
-	if (GetParameter("type") == "info") {
-		return INFO_REQUEST;
-	} else if (GetParameter("type") == "getconfig") {
-		return GETCONFIG_REQUEST;
-	} else if (GetParameter("type") == "setconfig") {
-		return SETCONFIG_REQUEST;
-	} else if (GetParameter("type") == "stream") {
-		return VIDEO_REQUEST;
+	std::string method = GetParameter("method");
+
+	if (method == "getinfo") {
+		return GETINFO_METHOD;
+	} else if (method == "getconfig") {
+		return GETCONFIG_METHOD;
+	} else if (method == "setconfig") {
+		return SETCONFIG_METHOD;
+	} else if (method == "stream") {
+		return STREAM_METHOD;
 	}
 
-	return UNKNOWN_REQUEST; 
+	return UNKNOWN_METHOD; 
 }
 
 std::string RequestParser::GetSourceProtocol()

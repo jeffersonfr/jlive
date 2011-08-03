@@ -17,11 +17,11 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef JLIVE_REQUESTPARSER_H
-#define JLIVE_REQUESTPARSER_H
+#ifndef JLIVE_NETWORK_H
+#define JLIVE_NETWORK_H
 
-#include <string>
-#include <map>
+#include "configuration.h"
+#include "jthread.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -29,39 +29,36 @@
 namespace mlive {
 
 /**
- * \brief Request parser.
+ * \brief Network.
  *
+ * 	Connect and sync with the others servers.
  *
  */
-class RequestParser{
+class Network : public jthread::Thread {
 
 	private:
-		std::map<std::string, std::string> _vars;
-
-	public:
-		enum requestparser_method_t {
-			UNKNOWN_METHOD,
-			STREAM_METHOD,
-			GETINFO_METHOD,
-			GETCONFIG_METHOD,
-			SETCONFIG_METHOD,
+		struct server_information_t {
+			std::string id;
+			int bandwidth;
+			int incomming;
+			int outcomming;
+			int connections;
+			std::string host;
+			int port;
 		};
 
-	public:
-		RequestParser(std::string s);
-		~RequestParser();
+	private:
+		std::vector<struct server_information_t *> _servers;
+		jthread::Mutex _mutex;
 
-		std::string GetParameter(std::string key_);
-		requestparser_method_t GetMethod();
-		std::string GetSourceProtocol();
-		std::string GetSourceHost();
-		int GetSourcePort();
-		std::string GetDestinationProtocol();
-		std::string GetDestinationHost();
-		int GetDestinationPort();
-		std::string GetEventName();
-		std::string GetResource();
-		std::string GetDestinationResource();
+	private:
+		void Run();
+
+	public:
+		Network();
+		virtual ~Network();
+
+		void UpdateConnections();
 
 };
 

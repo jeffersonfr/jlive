@@ -37,8 +37,6 @@ Client::Client(jsocket::Socket *socket, Source *source):
 	}
 
 	this->source = source;
-	read_index = 0;
-	pass_index = 0;
 	request = dynamic_cast<jsocket::Connection *>(socket);
 	type = HTTP_CLIENT_TYPE;
 	start_time = jcommon::Date::CurrentTimeMillis(), sent_bytes = 0LL;
@@ -55,8 +53,6 @@ Client::Client(jsocket::Socket *socket, std::string ip, int port, Source *source
 	}
 
 	this->source = source;
-	read_index = 0;
-	pass_index = 0;
 	type = UDP_CLIENT_TYPE;
 	request = dynamic_cast<jsocket::Connection *>(socket);
 	start_time = jcommon::Date::CurrentTimeMillis(), sent_bytes = 0LL;
@@ -166,19 +162,19 @@ void Client::ProcessHTTPClient()
 
 	jthread::IndexedBuffer *buffer = source->GetBuffer();
 	jio::OutputStream *o = response->GetOutputStream();
-	jthread::jringbuffer_t data;
+	jthread::jbuffer_chunk_t data;
 	int r;
 
-	buffer->GetIndex(&read_index, &pass_index);
+	buffer->GetIndex(&data);
 
 	do {
 		// WARNNING:: a excecao lancada pelo wait estah causando FATAL:: not rethrow
-		r = buffer->Read(&data, &read_index, &pass_index);
+		r = buffer->Read(&data);
 
 		if (r < 0) {
 			Thread::Sleep(100);
 
-			buffer->GetIndex(&read_index, &pass_index);
+			buffer->GetIndex(&data);
 		} else {
 			if (o->Write((const char *)data.data, data.size) < 0) {
 				break; 
@@ -193,18 +189,18 @@ void Client::ProcessUDPClient()
 {
 	jthread::IndexedBuffer *buffer = source->GetBuffer();
 	jio::OutputStream *o = response->GetOutputStream();
-	jthread::jringbuffer_t data;
+	jthread::jbuffer_chunk_t data;
 	int r;
 
-	buffer->GetIndex(&read_index, &pass_index);
+	buffer->GetIndex(&data);
 
 	do {
-		r = buffer->Read(&data, &read_index, &pass_index);
+		r = buffer->Read(&data);
 
 		if (r < 0) {
 			Thread::Sleep(100);
 
-			buffer->GetIndex(&read_index, &pass_index);
+			buffer->GetIndex(&data);
 		} else {
 			if (o->Write((const char *)data.data, data.size) < 0) {
 				break; 

@@ -201,7 +201,7 @@ void Source::ReadStream()
 
 	Start(_current);
 
-	jsocket::SocketOption *opt = NULL;
+	jsocket::SocketOptions *opt = NULL;
 	std::string host = "localhost";
 	int r,
 		port;
@@ -209,14 +209,14 @@ void Source::ReadStream()
 	if (_source->GetType() == jsocket::JCT_TCP) {
 		jsocket::Socket *s = dynamic_cast<jsocket::Socket *>(_source);
 
-		opt = s->GetSocketOption();
+		opt = s->GetSocketOptions();
 		
 		host = s->GetInetAddress()->GetHostAddress();
 		port = s->GetPort();
 	} else if (_source->GetType() == jsocket::JCT_UDP) {
 		jsocket::DatagramSocket *s = dynamic_cast<jsocket::DatagramSocket *>(_source);
 
-		opt = s->GetSocketOption();
+		opt = s->GetSocketOptions();
 
 		host = s->GetInetAddress()->GetHostAddress();
 		port = s->GetPort();

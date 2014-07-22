@@ -34,7 +34,7 @@ void help()
 
 int main(int argc, char **argv)
 {
-	InitWindowsSocket();
+	InitializeSocketLibrary();
 
 	jcommon::Options o(argc, argv);
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 		std::cout << "jLive Stream Closed" << std::endl;
 	}
 
-	ReleaseWindowsSocket();
+	ReleaseSocketLibrary();
 
 	return 0;
 }

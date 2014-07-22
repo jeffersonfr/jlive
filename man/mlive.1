@@ -1,4 +1,4 @@
-.\" Copyright 2010 Jeff Ferr (jeffersonfr@gmail.com)
+.\" Copyright 2010-2014 Jeff Ferr (jeffersonfr@gmail.com)
 .\"
 .\" Permission is granted to make and distribute verbatim copies of this
 .\" manual provided the copyright notice and this permission notice are
@@ -19,7 +19,7 @@
 .\"
 .\" Formatted or processed versions of this manual, if unaccompanied by
 .\" the source, must acknowledge the copyright and authors of this work.
-.TH mLIVE 1  2007-08-21 "" "mlive's Manual"
+.TH mLIVE 1  2010-08-21 "" "mlive's Manual"
 .SH NAME
 mlive \- live stream reflector
 .SH SYNOPSIS
@@ -44,9 +44,9 @@ print current version of server
 .SH AUTHOR
 Written by Jeff Ferr.
 .SH "REPORTING BUGS"
-Report bugs to <jeffersonfr@lavid.ufpb.br>.
+Report bugs to <jeffersonfr@gmail.com>.
 .SH COPYRIGHT
-Copyright \(co 2010 Free Software Foundation, Inc.
+Copyright \(co 2010-2014 Free Software Foundation, Inc.
 
 This is free software. You may redistribute copies of it under the terms of the GNU General Public License <http://www.gnu.org/licenses/gpl.html>. There is NO WARRANTY, to the extent permitted by law.
 .SH "EXAMPLE"
@@ -54,23 +54,23 @@ Type one of these options in your preferred browser:
 
 Request unicast stream:
 .br
-	http://host:port/event.xxx?source=<udp,http>-ip-port&destination=<udp-ip-port,http>&type=stream[&resource=/]
+	http://host:port/event.xxx?source=<udp,http>-ip-port&destination=<udp-ip-port,http>&method=stream[&resource=/]
 
 Request multicast stream (application level):
 .br
-	http://host:port/event.xxx?source=<udp,http>-ip1-port1-ip2-port2-ip3-port3[...]&destination=<udp-ip-port,http>&type=stream[&resource=/]
+	http://host:port/event.xxx?source=<udp,http>-ip1-port1-ip2-port2-ip3-port3[...]&destination=<udp-ip-port,http>&method=stream[&resource=/]
 
 Webservice interface:
 .br
-	http://host:port/?type=info
-
-Setting configuration:
-.br
-	http://host:port/?input-rate=256&output-rate=256&max-clients=4&max-sources=4&buffer-size=1024&update-time=2&type=setconfig
+	http://host:port/?method=getinfo
 
 Getting configuration:
 .br
-	http://host:port/?type=getconfig
+	http://host:port/?method=getconfig
+
+Setting configuration:
+.br
+	http://host:port/?input-rate=256&output-rate=256&max-clients=4&max-sources=4&buffer-size=1024&update-time=2&method=setconfig
 .SH "SEE ALSO"
 For more informations visit http://sourceforge.net/projects/mlive.
 .br

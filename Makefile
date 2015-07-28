@@ -38,13 +38,14 @@ ARFLAGS		= -rc
 
 CFLAGS		= $(INCLUDE) $(DEBUG) $(OPTIONS)
 
-ECHO			= echo -e
+ECHO			= echo
 
 OK 				= \033[30;32mOK\033[m
 
 OBJS			= \
 						client.o \
 						configuration.o \
+						log.o \
 						network.o \
 						requestparser.o \
 						server.o \

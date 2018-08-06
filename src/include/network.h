@@ -21,10 +21,8 @@
 #define JLIVE_NETWORK_H
 
 #include "configuration.h"
-#include "jthread.h"
 
-#include <unistd.h>
-#include <stdio.h>
+#include <vector>
 
 namespace mlive {
 
@@ -34,7 +32,7 @@ namespace mlive {
  * 	Connect and sync with the others servers.
  *
  */
-class Network : public jthread::Thread {
+class Network {
 
 	private:
 		struct server_information_t {
@@ -48,8 +46,8 @@ class Network : public jthread::Thread {
 		};
 
 	private:
-		std::vector<struct server_information_t *> _servers;
-		jthread::Mutex _mutex;
+		std::vector<struct server_information_t *> 
+      _servers;
 
 	private:
 		void Run();

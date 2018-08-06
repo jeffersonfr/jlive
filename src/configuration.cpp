@@ -18,7 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "configuration.h"
-#include "jproperties.h"
+
+#include "jcommon/jproperties.h"
 
 #include <iostream>
 #include <sstream>
@@ -32,9 +33,9 @@ Configuration *Configuration::instance = NULL;
 Configuration::Configuration()
 {
 	try {
-		jcommon::Properties p;
+		jcommon::Properties p("/etc/mlive/mlive.properties");
 
-		p.Load("/etc/mlive/mlive.properties");
+    p.Load();
 
 		SetProperty("mlive-name", p.GetTextParam("mlive-name", "Mlive Server v0.01"));
 		SetProperty("mlive-id", p.GetTextParam("mlive-id", "1234567890"));

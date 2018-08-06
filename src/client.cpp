@@ -19,50 +19,47 @@
  ***************************************************************************/
 #include "client.h"
 #include "source.h"
-#include "jruntimeexception.h"
-#include "jdate.h"
-#include "jdatagramsocket.h"
+
+#include "jnetwork/jdatagramsocket.h"
+#include "jexception/jruntimeexception.h"
 
 #include <sstream>
 
-#include <errno.h>
-
 namespace mlive {
 
-Client::Client(jsocket::Socket *socket, Source *source):
-	jthread::Thread()	
+Client::Client(jnetwork::Socket *socket, Source *source)
 {
 	if ((void *)socket == NULL) {
-		throw jcommon::RuntimeException("Invalid reference to socket");
+		throw jexception::RuntimeException("Invalid reference to socket");
 	}
 
 	this->source = source;
-	request = dynamic_cast<jsocket::Connection *>(socket);
+	request = dynamic_cast<jnetwork::Connection *>(socket);
 	type = HTTP_CLIENT_TYPE;
-	start_time = jcommon::Date::CurrentTimeMillis(), sent_bytes = 0LL;
-	_is_closed = false;
+  start_time = std::chrono::steady_clock::now();
+  sent_bytes = 0LL;
 
-	this->response = dynamic_cast<jsocket::Connection *>(socket);
+	this->response = dynamic_cast<jnetwork::Connection *>(socket);
 }
 
-Client::Client(jsocket::Socket *socket, std::string ip, int port, Source *source):
-	jthread::Thread()	
+Client::Client(jnetwork::Socket *socket, std::string ip, int port, Source *source)
 {
 	if ((void *)socket == NULL) {
-		throw jcommon::RuntimeException("Invalid reference to socket");
+		throw jexception::RuntimeException("Invalid reference to socket");
 	}
 
 	this->source = source;
 	type = UDP_CLIENT_TYPE;
-	request = dynamic_cast<jsocket::Connection *>(socket);
-	start_time = jcommon::Date::CurrentTimeMillis(), sent_bytes = 0LL;
-	_is_closed = false;
+	request = dynamic_cast<jnetwork::Connection *>(socket);
+  start_time = std::chrono::steady_clock::now();
+  sent_bytes = 0LL;
 
-	this->response = dynamic_cast<jsocket::Connection *>(new jsocket::DatagramSocket(ip, port, true));
+	this->response = dynamic_cast<jnetwork::Connection *>(new jnetwork::DatagramSocket(ip, port, true));
 }
 
 Client::~Client()
 {
+  Stop();
 }
 
 Client::client_type_t Client::GetType()
@@ -70,17 +67,17 @@ Client::client_type_t Client::GetType()
 	return type;
 }
 
-jsocket::Connection * Client::GetConnection()
+jnetwork::Connection * Client::GetConnection()
 {
 	return response;
 }
 
-long long Client::GetStartTime()
+uint64_t Client::GetStartTime()
 {
-	return start_time;
+  return std::chrono::duration_cast<std::chrono::microseconds>(start_time.time_since_epoch()).count();
 }
 
-long long Client::GetSentBytes()
+uint64_t Client::GetSentBytes()
 {
 	return sent_bytes;
 }
@@ -113,26 +110,43 @@ void Client::Release()
 
 bool Client::IsClosed()
 {
-	return _is_closed;
+	return _is_running == false;
 }
 
 int Client::GetOutputRate()
 {
-	long long current = jcommon::Date::CurrentTimeMillis(),
-		 rate = (sent_bytes*8LL)/(current-start_time);
+  std::chrono::time_point<std::chrono::steady_clock>
+    current = std::chrono::steady_clock::now();
+  uint64_t
+    elapsed = std::chrono::duration_cast<std::chrono::microseconds>((current - start_time)).count();
+	uint64_t 
+		rate = (sent_bytes*8LL)/(elapsed);
 
 	return (int)(rate);
 }
 
 void Client::Stop()
 {
-	_running = false;
+  if (_is_running == false) {
+    return;
+  }
+
+	_is_running = false;
 	
 	// source->GetBuffer()->Write((const uint8_t *)"\0", 1);
 
-	Interrupt();
-	WaitThread();
+  _thread.join();
+
 	Release();
+}
+
+void Client::Start()
+{
+  if (_is_running == true) {
+    return;
+  }
+
+  _thread = std::thread(&Client::Run, this);
 }
 
 void Client::ProcessHTTPClient() 
@@ -160,9 +174,9 @@ void Client::ProcessHTTPClient()
 		}
 	}
 
-	jthread::IndexedBuffer *buffer = source->GetBuffer();
+	jshared::IndexedBuffer *buffer = source->GetBuffer();
 	jio::OutputStream *o = response->GetOutputStream();
-	jthread::jbuffer_chunk_t data;
+	jshared::jbuffer_chunk_t data;
 	int r;
 
 	buffer->GetIndex(&data);
@@ -172,7 +186,7 @@ void Client::ProcessHTTPClient()
 		r = buffer->Read(&data);
 
 		if (r < 0) {
-			Thread::Sleep(100);
+      std::this_thread::sleep_for(std::chrono::milliseconds((100)));
 
 			buffer->GetIndex(&data);
 		} else {
@@ -182,14 +196,14 @@ void Client::ProcessHTTPClient()
 
 			sent_bytes += data.size;
 		}
-	} while (_running == true);
+	} while (_is_running == true);
 }
 
 void Client::ProcessUDPClient() 
 {
-	jthread::IndexedBuffer *buffer = source->GetBuffer();
+	jshared::IndexedBuffer *buffer = source->GetBuffer();
+	jshared::jbuffer_chunk_t data;
 	jio::OutputStream *o = response->GetOutputStream();
-	jthread::jbuffer_chunk_t data;
 	int r;
 
 	buffer->GetIndex(&data);
@@ -198,7 +212,7 @@ void Client::ProcessUDPClient()
 		r = buffer->Read(&data);
 
 		if (r < 0) {
-			Thread::Sleep(100);
+      std::this_thread::sleep_for(std::chrono::milliseconds((100)));
 
 			buffer->GetIndex(&data);
 		} else {
@@ -208,12 +222,12 @@ void Client::ProcessUDPClient()
 
 			sent_bytes += data.size;
 		}
-	} while (_running == true);
+	} while (_is_running == true);
 }
 
 void Client::Run() 
 {
-	_running = true;
+	_is_running = true;
 
 	if (type == HTTP_CLIENT_TYPE) {
 		ProcessHTTPClient();
@@ -221,8 +235,7 @@ void Client::Run()
 		ProcessUDPClient();
 	}
 
-	_running = false;
-	_is_closed = true;
+	_is_running = false;
 }
 
 }

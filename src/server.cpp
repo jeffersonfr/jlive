@@ -20,19 +20,18 @@
 #include "server.h"
 #include "configuration.h"
 #include "requestparser.h"
-#include "jautolock.h"
 
+#include <iostream>
 #include <sstream>
 
+#include <string.h>
 #include <errno.h>
 
 namespace mlive {
 
-Server::Server(int port):
-	jthread::Thread()	
+Server::Server(int port)
 {
 	this->port = port;
-	this->current = HANDLEREQUESTS;
 }
 
 Server::~Server()
@@ -42,11 +41,7 @@ Server::~Server()
 void Server::Run() 
 {
 	try {
-		if (current == HANDLEREQUESTS) {
-			HandleRequests();
-		} else if (current == REMOVECONTEXTS) {
-			RemoveSources();
-		}
+		HandleRequests();
 	} catch (...) {
 		std::cout << "Mlive Server:: " << strerror(errno) << std::endl;
 	}
@@ -54,17 +49,20 @@ void Server::Run()
 
 void Server::HandleRequests() 
 {
-	current = REMOVECONTEXTS;
-
-	Start(current);
-
-	jsocket::Socket *socket = NULL;
-
-	jsocket::ServerSocket server(port, 10);
+	jnetwork::Socket *socket = NULL;
+	jnetwork::ServerSocket server(port, 10);
 
 	std::cout << "Mlive Streamer Ready [" << server.GetInetAddress()->GetHostName() << ":" << port << "]\r\n" << std::endl;
 
 	do {
+    for (std::vector<Source *>::iterator i=sources.begin(); i!=sources.end(); i++) {
+      Source *source = (*i);
+
+      source->RemoveClients();
+    }
+
+		RemoveSources();
+
 		try {
 			std::cout << "Waiting for connection ..." << std::endl;
 
@@ -137,9 +135,9 @@ void Server::HandleRequests()
 
 int Server::GetNumberOfSources()
 {
-	jthread::AutoLock lock(&_mutex);
-
 	int n = 0;
+
+  _mutex.lock();
 
 	for (std::vector<Source *>::iterator i=sources.begin(); i!=sources.end(); i++) {
 		if ((*i)->IsClosed() == false) {
@@ -147,10 +145,12 @@ int Server::GetNumberOfSources()
 		}
 	}
 
+  _mutex.unlock();
+
 	return n; // (int)sources.size();
 }
 
-bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
+bool Server::ProcessClient(jnetwork::Socket *socket, std::string receive)
 {
 	RequestParser parser(receive);
 
@@ -271,9 +271,9 @@ bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
 			std::cout << "Response stream to [" << socket->GetInetAddress()->GetHostAddress() << ":" << socket->GetPort() << "]" << std::endl;
 
 			{
-				jthread::AutoLock lock(&_mutex);
-
 				Source *source = NULL;
+
+        std::unique_lock<std::mutex> lock(_mutex);
 
 				for (std::vector<Source *>::iterator i=sources.begin(); i!=sources.end(); i++) {
 					if ((*i)->GetSourceName() == parser.GetEventName()) {
@@ -391,29 +391,25 @@ bool Server::ProcessClient(jsocket::Socket *socket, std::string receive)
 
 void Server::RemoveSources()
 {
-	while (true) {
-		{
-			jthread::AutoLock lock(&_mutex);
+  _mutex.lock();
 
-			for (std::vector<Source *>::iterator i=sources.begin(); i!=sources.end(); i++) {
-				Source *c = (*i);
+  for (std::vector<Source *>::iterator i=sources.begin(); i!=sources.end(); i++) {
+    Source *c = (*i);
 
-				if (c->IsClosed() == true) {
-					std::cout << "Remove source::[source=" << c->GetSourceName() << "] [address=0x" << std::hex << (unsigned long)(c) << "]" << std::dec << std::endl;
+    if (c->IsClosed() == true) {
+      std::cout << "Remove source::[source=" << c->GetSourceName() << "] [address=0x" << std::hex << (unsigned long)(c) << "]" << std::dec << std::endl;
 
-					sources.erase(i);
+      sources.erase(i);
 
-					c->Stop();
-					delete c;
+      c->Stop();
+      delete c;
 
-					break;
-				}
+      break;
+    }
 
-			}
-		}
+  }
 
-		Thread::Sleep(atoi(Configuration::GetInstance()->GetProperty("update-time").c_str())*1000);
-	}
+  _mutex.unlock();
 }
 
 }

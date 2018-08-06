@@ -21,8 +21,7 @@
 
 namespace mlive {
 
-Network::Network():
-	jthread::Thread()	
+Network::Network()
 {
 }
 	

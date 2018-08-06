@@ -21,8 +21,10 @@
 #define JLIVE_SOURCE_H
 
 #include "client.h"
-#include "jindexedbuffer.h"
-#include "jthread.h"
+
+#include "jshared/jindexedbuffer.h"
+
+#include <thread>
 
 #include <unistd.h>
 #include <stdio.h>
@@ -38,7 +40,7 @@ class Server;
  * 	Abstract data source:
  *
  */
-class Source : public jthread::Thread{
+class Source {
 	
 	public:
 		enum source_type_t {
@@ -46,25 +48,30 @@ class Source : public jthread::Thread{
 			UDP_SOURCE_TYPE
 		};
 
-		enum current_context_status_t {
-			READSTREAM		= 0,
-			REMOVECLIENTS	= 1
-		};
-
 	private:
-		std::vector<Client *> clients;
-		jthread::IndexedBuffer *_buffer;
-		jthread::Mutex _mutex;
-		jsocket::Connection *_source;
-		Server *_server;
-		std::string _event;
-		std::string _resource;
-		source_type_t _type;
-		current_context_status_t _current;
-		long long _start_time;
-		long long _sent_bytes;
-		bool _running,
-				 _is_closed;
+		std::vector<Client *> 
+      clients;
+		jshared::IndexedBuffer 
+      *_buffer;
+    std::thread
+      _thread;
+    std::mutex 
+      _mutex;
+		jnetwork::Connection 
+      *_source;
+		Server 
+      *_server;
+		std::string 
+      _event,
+		  _resource;
+		source_type_t 
+      _type;
+    std::chrono::time_point<std::chrono::steady_clock>
+      _start_time;
+		uint64_t 
+		  _sent_bytes;
+		bool 
+      _is_running;
 
 	public:
 		Source(std::string ip, int port, std::string source_name, source_type_t type, Server *server, std::string resource);
@@ -76,13 +83,14 @@ class Source : public jthread::Thread{
 		int GetIncommingRate();
 		int GetOutputRate();
 		int GetNumberOfClients();
-		jthread::IndexedBuffer * GetBuffer();
+		jshared::IndexedBuffer * GetBuffer();
 		std::string GetSourceName();
-		bool AddClient(jsocket::Socket *socket, RequestParser &parser);
+		bool AddClient(jnetwork::Socket *socket, RequestParser &parser);
 		void ReadStream();
 		void RemoveClients();
 		void Stop();
-		virtual void Run();
+		void Start();
+		void Run();
 		
 };
 

@@ -20,10 +20,11 @@
 #ifndef JLIVE_CLIENT_H
 #define JLIVE_CLIENT_H
 
-#include "jcondition.h"
-#include "jmutex.h"
-#include "jthread.h"
-#include "jsocket.h"
+#include "jnetwork/jsocket.h"
+
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 #include <unistd.h>
 #include <stdio.h>
@@ -38,7 +39,7 @@ class Source;
  * 	Handle clients.
  *
  */
-class Client : public jthread::Thread {
+class Client {
 	
 	public:
 		enum client_type_t {
@@ -47,34 +48,44 @@ class Client : public jthread::Thread {
 		};
 
 	private:
-		jsocket::Connection *request,
+		jnetwork::Connection 
+      *request,
 			*response;
-		Source *source;
-		client_type_t type;
-		jthread::Mutex mutex;
-		int read_index,
-				pass_index;
-		long long start_time;
-		long long sent_bytes;
-		bool _running,
-				 _is_closed;
+		Source 
+      *source;
+		client_type_t 
+      type;
+    std::thread
+      _thread;
+    std::mutex 
+      mutex;
+    std::chrono::time_point<std::chrono::steady_clock>
+      start_time;
+		uint64_t 
+      sent_bytes;
+		int 
+      read_index,
+			pass_index;
+		bool 
+      _is_running;
 
 	public:
-		Client(jsocket::Socket *socket, Source *source);
-		Client(jsocket::Socket *socket, std::string ip, int port, Source *source);
+		Client(jnetwork::Socket *socket, Source *source);
+		Client(jnetwork::Socket *socket, std::string ip, int port, Source *source);
 		virtual ~Client();
 
-		jsocket::Connection * GetConnection();
+		jnetwork::Connection * GetConnection();
 		client_type_t GetType();
 		void Release();
 		bool IsClosed();
 		int GetOutputRate();
-		long long GetStartTime();
-		long long GetSentBytes();
+		uint64_t GetStartTime();
+		uint64_t GetSentBytes();
 		void ProcessHTTPClient();
 		void ProcessUDPClient();
 		void Stop();
-		virtual void Run();
+		void Start();
+		void Run();
 		
 };
 

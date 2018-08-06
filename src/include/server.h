@@ -21,10 +21,8 @@
 #define JLIVE_SERVER_H
 
 #include "source.h"
-#include "jthread.h"
 
-#include <unistd.h>
-#include <stdio.h>
+#include <thread>
 
 namespace mlive {
 
@@ -47,17 +45,17 @@ namespace mlive {
  * 		http://host:port/?type=getconfig
  *
  */
-class Server : public jthread::Thread {
-	private:
-		enum current_server_status_t {
-			HANDLEREQUESTS	= 0,
-			REMOVECONTEXTS	= 1
-		};
+class Server {
 
-		current_server_status_t current;
-		std::vector<Source *> sources;
-		jthread::Mutex _mutex;
-		int port;
+	private:
+		std::vector<Source *> 
+      sources;
+    std::thread
+      _thread;
+		std::mutex 
+      _mutex;
+		int 
+      port;
 
 	public:
 		Server(int port);
@@ -65,7 +63,7 @@ class Server : public jthread::Thread {
 
 		void HandleRequests();
 		int GetNumberOfSources();
-		bool ProcessClient(jsocket::Socket *socket, std::string receive);
+		bool ProcessClient(jnetwork::Socket *socket, std::string receive);
 		void RemoveSources();
 		void Run();
 

@@ -18,12 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "server.h"
-#include "joptions.h"
-#include "jsocketlib.h"
 
-#include <sstream>
+#include "jcommon/joptions.h"
+#include "jnetwork/jnetworklib.h"
 
-#include <errno.h>
+#include <iostream>
 
 void help()
 {
@@ -58,8 +57,7 @@ int main(int argc, char **argv)
 	try {
 		mlive::Server server(port);
 
-		server.Start();
-		server.WaitThread();
+		server.Run();
 	} catch (...) {
 		std::cout << "jLive Stream Closed" << std::endl;
 	}

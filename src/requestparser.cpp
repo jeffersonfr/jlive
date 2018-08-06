@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "requestparser.h"
-#include "jstringtokenizer.h"
-#include "jruntimeexception.h"
-#include "jurl.h"
-#include "jstringutils.h"
+#include "jcommon/jstringtokenizer.h"
+#include "jcommon/jstringutils.h"
+#include "jnetwork/jurl.h"
+#include "jexception/jruntimeexception.h"
 
 #include <sstream>
 
@@ -36,17 +36,17 @@ RequestParser::RequestParser(std::string s)
 	jcommon::StringTokenizer request(lines.GetToken(0), " ", jcommon::JTT_STRING);
 
 	if (request.GetSize() != 3) {
-		throw jcommon::RuntimeException("Invalid request");
+		throw jexception::RuntimeException("Invalid request");
 	}
 
 	if (strcasecmp(request.GetToken(0).c_str(), "get") != 0) {
-		throw jcommon::RuntimeException("Invalid request protocol");
+		throw jexception::RuntimeException("Invalid request protocol");
 	}
 
 	jcommon::StringTokenizer url(request.GetToken(1), "?", jcommon::JTT_STRING);
 
 	if (request.GetToken(1)[0] != '/') {
-		throw jcommon::RuntimeException("Invalid url resource");
+		throw jexception::RuntimeException("Invalid url resource");
 	}
 
 	_vars["request_url"] = request.GetToken(1);
@@ -74,7 +74,7 @@ std::string RequestParser::GetParameter(std::string key_)
 {
 	for (std::map<std::string, std::string>::iterator i=_vars.begin(); i!=_vars.end(); i++) {
 		if (strcasecmp(i->first.c_str(), key_.c_str()) == 0) {
-			return jcommon::URL::Decode(i->second, "ISO-8859-1"); 
+			return jnetwork::URL::Decode(i->second, "ISO-8859-1"); 
 		}
 	}
 

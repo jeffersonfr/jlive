@@ -20,12 +20,12 @@
 #include "source.h"
 #include "server.h"
 #include "requestparser.h"
-#include "jruntimeexception.h"
 #include "configuration.h"
-#include "jdatagramsocket.h"
-#include "jdate.h"
-#include "jautolock.h"
 
+#include "jnetwork/jdatagramsocket.h"
+#include "jexception/jruntimeexception.h"
+
+#include <iostream>
 #include <sstream>
 
 #include <errno.h>
@@ -35,7 +35,7 @@ namespace mlive {
 Source::Source(std::string ip, int port, std::string source_name, source_type_t type, Server *server, std::string resource)
 {
 	if ((void *)socket == NULL) {
-		throw jcommon::RuntimeException("Invalid reference to socket");
+		throw jexception::RuntimeException("Invalid reference to socket");
 	}
 
 	_sent_bytes = 0LL;
@@ -43,22 +43,21 @@ Source::Source(std::string ip, int port, std::string source_name, source_type_t 
 	_resource = resource;
 	_type = type;
 	_event = source_name;
-	_current = READSTREAM;
-	_is_closed = false;
 
-	_buffer = new jthread::IndexedBuffer(atoi(Configuration::GetInstance()->GetProperty("buffer-size").c_str()), 4096);
+	_buffer = new jshared::IndexedBuffer(atoi(Configuration::GetInstance()->GetProperty("buffer-size").c_str()), 4096);
 
 	if (_type == HTTP_SOURCE_TYPE) {
-		_source = dynamic_cast<jsocket::Connection *>(new jsocket::Socket(ip, port));
+		_source = dynamic_cast<jnetwork::Connection *>(new jnetwork::Socket(ip, port));
 	} else {
-		_source = dynamic_cast<jsocket::Connection *>(new jsocket::DatagramSocket(port));
+		_source = dynamic_cast<jnetwork::Connection *>(new jnetwork::DatagramSocket(port));
 	}
 
-	_start_time = jcommon::Date::CurrentTimeMillis();
+	_start_time = std::chrono::steady_clock::now();
 }
 
 Source::~Source()
 {
+  Stop();
 }
 
 std::vector<Client *> & Source::GetClients()
@@ -68,7 +67,7 @@ std::vector<Client *> & Source::GetClients()
 
 void Source::Release() 
 {
-	jthread::AutoLock lock(&_mutex);
+  _mutex.lock();
 
 	for (int i=0; i<(int)GetNumberOfClients(); i++) {
 		Client *c = clients[i];
@@ -93,36 +92,48 @@ void Source::Release()
 		delete _buffer;
 		_buffer = NULL;
 	}
+  
+  _mutex.unlock();
 }
 
 int Source::IsClosed()
 {
-	jthread::AutoLock lock(&_mutex);
-
-	return _is_closed;
+	return _is_running == false;
 }
 
-jthread::IndexedBuffer * Source::GetBuffer() 
+jshared::IndexedBuffer * Source::GetBuffer() 
 {
 	return _buffer;
 }
 
 void Source::Stop()
 {
-	_running = false;
+  if (_is_running == false) {
+    return;
+  }
 
-	WaitThread((int)Source::READSTREAM);
-	WaitThread((int)Source::REMOVECLIENTS);
+	_is_running = false;
+
+  _thread.join();
 
 	Release();
 }
 
+void Source::Start()
+{
+  if (_is_running == true) {
+    return;
+  }
+
+  _thread = std::thread(&Source::Run, this);
+}
+
 int Source::GetIncommingRate()
 {
-	long long current = jcommon::Date::CurrentTimeMillis(),
-		 rate = (_sent_bytes*8LL)/(current-_start_time);
+	uint64_t
+    elapsed = std::chrono::duration_cast<std::chrono::microseconds>((std::chrono::steady_clock::now() - _start_time)).count();
 
-	return (int)(rate);
+	return (int)((_sent_bytes*8LL)/(elapsed));
 }
 
 int Source::GetOutputRate()
@@ -138,15 +149,17 @@ int Source::GetOutputRate()
 
 int Source::GetNumberOfClients()
 {
-	jthread::AutoLock lock(&_mutex);
-
 	int n = 0;
+
+  _mutex.lock();
 
 	for (std::vector<Client *>::iterator i=clients.begin(); i!=clients.end(); i++) {
 		if ((*i)->IsClosed() == false) {
 			n = n + 1;
 		}
 	}
+
+  _mutex.unlock();
 
 	return n; // (int)clients.size();
 }
@@ -156,7 +169,7 @@ std::string Source::GetSourceName()
 	return _event;
 }
 
-bool Source::AddClient(jsocket::Socket *socket, RequestParser &parser)
+bool Source::AddClient(jnetwork::Socket *socket, RequestParser &parser)
 {
 	if (IsClosed() == true) {
 		return false;
@@ -182,11 +195,13 @@ bool Source::AddClient(jsocket::Socket *socket, RequestParser &parser)
 		}
 
 		if ((void *)client != NULL) {
-			jthread::AutoLock lock(&_mutex);
+      _mutex.lock();
 
 			clients.push_back(client);
 
 			client->Start();
+
+      _mutex.unlock();
 
 			return true;
 		}
@@ -197,24 +212,20 @@ bool Source::AddClient(jsocket::Socket *socket, RequestParser &parser)
 
 void Source::ReadStream() 
 {
-	_current = REMOVECLIENTS;
-
-	Start(_current);
-
-	jsocket::SocketOptions *opt = NULL;
+	jnetwork::SocketOptions *opt = NULL;
 	std::string host = "localhost";
 	int r,
 		port;
 
-	if (_source->GetType() == jsocket::JCT_TCP) {
-		jsocket::Socket *s = dynamic_cast<jsocket::Socket *>(_source);
+	if (_source->GetType() == jnetwork::JCT_TCP) {
+		jnetwork::Socket *s = dynamic_cast<jnetwork::Socket *>(_source);
 
 		opt = s->GetSocketOptions();
 		
 		host = s->GetInetAddress()->GetHostAddress();
 		port = s->GetPort();
-	} else if (_source->GetType() == jsocket::JCT_UDP) {
-		jsocket::DatagramSocket *s = dynamic_cast<jsocket::DatagramSocket *>(_source);
+	} else if (_source->GetType() == jnetwork::JCT_UDP) {
+		jnetwork::DatagramSocket *s = dynamic_cast<jnetwork::DatagramSocket *>(_source);
 
 		opt = s->GetSocketOptions();
 
@@ -230,7 +241,7 @@ void Source::ReadStream()
 
 	delete opt;
 
-	if (_source->GetType() == jsocket::JCT_TCP) {
+	if (_source->GetType() == jnetwork::JCT_TCP) {
 		{
 			std::ostringstream o;
 
@@ -269,7 +280,7 @@ void Source::ReadStream()
 		_buffer->Write((uint8_t *)receive, r);
 
 		_sent_bytes += r;
-	} while (_running == true);
+	} while (_is_running == true);
 
 	std::cout << "[source=" << GetSourceName() << "] stream was closed" << std::endl;
 }
@@ -277,45 +288,44 @@ void Source::ReadStream()
 void Source::RemoveClients()
 {
 	do {
-		{
-			jthread::AutoLock lock(&_mutex);
+    _mutex.lock();
 
-			for (std::vector<Client *>::iterator i=clients.begin(); i!=clients.end(); i++) {
-				Client *c = (*i);
+		for (std::vector<Client *>::iterator i=clients.begin(); i!=clients.end(); i++) {
+      Client *c = (*i);
 
-				if (c->IsClosed() == true) {
-					std::cout << "Remove client::[source=" << GetSourceName() << "] [client=0x" << std::hex << (unsigned long)(c) << "]" << std::dec << std::endl;
+      if (c->IsClosed() == true) {
+        std::cout << "Remove client::[source=" << GetSourceName() << "] [client=0x" << std::hex << (unsigned long)(c) << "]" << std::dec << std::endl;
 
-					clients.erase(i);
+        clients.erase(i);
 
-					c->Stop();
-					delete c;
+        c->Stop();
+        delete c;
 
-					break;
-				}
-			}
+        _mutex.unlock();
 
-			if (clients.empty() == true) {
-				break;
-			}
-		}
+        break;
+      }
+    }
 
-		Thread::Sleep(atoi(Configuration::GetInstance()->GetProperty("update-time").c_str())*1000);
-	} while (IsClosed() == false && _running == true);
+    if (clients.empty() == true) {
+      _mutex.unlock();
+
+      break;
+    }
+
+    _mutex.unlock();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(atoi(Configuration::GetInstance()->GetProperty("update-time").c_str())));
+	} while (_is_running == true);
 }
 
 void Source::Run()
 {
-	_running = true;
+	_is_running = true;
 
-	if (_current == READSTREAM) {
-		ReadStream();
-	} else if (_current == REMOVECLIENTS) {
-		RemoveClients();
-	}
+	ReadStream();
 
-	_running = false;
-	_is_closed = true;
+	_is_running = false;
 }
 
 }

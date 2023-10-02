@@ -1,8 +1,20 @@
 cmake_minimum_required (VERSION 3.0)
 
-project (jlive)
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR "In-source build is not allowed")
+endif()
+
+project(jlive
+  LANGUAGES CXX
+  HOMEPAGE_URL https://github.com/jeffersonfr/jlive
+  DESCRIPTION "Live server"
+  VERSION 1.0.0
+)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+enable_testing()
 
 add_subdirectory(src)
 
